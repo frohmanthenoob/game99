@@ -1,0 +1,13 @@
+{
+  "name": "特訓99",
+  "version": "0.1.0",
+
+  "main": "game.html",
+
+  "window":{"toolbar":false,
+  "width":535,
+  "height":420
+  
+  }
+
+}

@@ -1,0 +1,197 @@
+﻿<!DOCTYPE>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>特訓99</title>
+    <link rel="icon" href="./galaga_ship.png.ico" type="image/x-icon" />
+    <script src="./jquery-3.1.1.min.js"></script>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        #stage {
+            text-align: left;
+            display: inline-block;
+            position: relative;
+            width: 500px;
+            height: 400px;
+            background: #000000;
+            overflow:hidden;
+        }
+
+        .sprite {
+            display: inline-block;
+            position: absolute;
+        }
+
+        #player {
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            background: url(./img/galaga_ship.png);
+            background-size:24px 24px;
+            background-position: center center; 
+        }
+
+        .bullet {
+            width: 16px;
+            height: 16px;
+            background: url(./img/bullet_orange.png);
+            background-size:16px,16px;
+        }
+        #score {
+            width:480px;
+            color:white;
+            font-size:25px;
+            padding-right:10px;
+            z-index:999;
+            text-align:right;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="stage">
+        <div id="player" class="sprite"></div>
+        <div id="score" class="sprite">0000</div>
+    </div>
+    <script>
+        $(function () {
+            var $body = $("body"),
+            $stage = $("#stage"),
+            $player = $("#player"),
+            $score = $("#score"),
+            count =0,
+            p_speed = 5,
+            p_xway = 0,
+            p_yway = 0,
+            b_speed = 2,
+            bR = $stage.height() / Math.sin(Math.atan($stage.height() / $stage.width()))/2,
+            key = {
+                left: 37,
+                up: 38,
+                right: 39,
+                down: 40
+            };
+
+            $player.css("left", ($stage.width() - $player.width()) / 2 + "px");
+            $player.css("top", ($stage.height() - $player.height()) / 2 + "px");
+
+            function getRandomInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            };
+
+            $body.keydown(function (event) {
+
+                if (event.which === key.left || event.which === key.up || event.which === key.right || event.which === key.down) {
+                    event.preventDefault();
+                    switch (event.which) {
+                        case key.left: p_xway = -1;
+                            break;
+                        case key.up: p_yway = -1;
+                            break;
+                        case key.right: p_xway = 1;
+                            break;
+                        case key.down: p_yway = 1;
+                            break;
+                    }
+                }
+            });
+            $body.keyup(function (event) {
+                p_xway = 0,
+                p_yway = 0
+            });
+
+            function createBullet() {
+                $stage.append("<div class='sprite bullet'></div>");
+                var b = $stage.find(".bullet:last"),
+                    b_start_angle = getRandomInt(0, 359),
+                    bx = $stage.width() / 2 + bR * Math.cos(Math.PI * b_start_angle / 180) - b.width() / 2,
+                    by = $stage.height() / 2 + bR * Math.sin(Math.PI * b_start_angle / 180) - b.height() / 2,
+                    b_end_angle = getRandomInt(b_start_angle + 90, b_start_angle + 270);
+
+                b.data("x_speed", b_speed * Math.cos(Math.PI * b_end_angle / 180));
+                b.data("y_speed", b_speed * Math.sin(Math.PI * b_end_angle / 180));
+
+                b.css("left", bx + "px");
+                b.css("top", by + "px");1
+            };
+
+            for (var i = 0; i < 100; i++) {
+                createBullet();
+                
+            };
+            
+
+            var loop = setInterval(function () {
+                var xspeed = 0,
+                    yspeed = 0,
+                    x = parseInt($player.css("left")),
+                    y = parseInt($player.css("top"));
+                if (p_xway !== 0 && p_yway !== 0) {
+                    xspeed = p_speed * Math.cos(Math.PI / 4)* p_xway;
+                    yspeed = p_speed * Math.sin(Math.PI / 4) *p_yway;
+                } else if (p_xway === -1 && p_yway === 0) {
+                    xspeed = p_speed * p_xway;
+                } else if (p_xway === 0 && p_yway === -1) {
+                    yspeed = p_speed * p_yway;
+                } else if (p_xway === 1 && p_yway === 0) {
+                    xspeed = p_speed * p_xway;
+                } else if (p_xway === 0 && p_yway === 1) {
+                    yspeed = p_speed * p_yway;
+                };
+                x = x + xspeed;
+                y = y + yspeed;
+                if (x < 0) {
+                    x = 0
+                } else if (x > $stage.width() - $player.width()) {
+                    x = $stage.width() - $player.width()
+                };
+                if (y < 0) {
+                    y = 0
+                } else if (y > $stage.height() - $player.height()) {
+                    y = $stage.height() - $player.height()
+                };
+
+                $player.css("left", x + "px");
+                $player.css("top", y + "px");
+
+               $(".bullet").each(function () {
+                    var $this = $(this),
+                        bx = parseInt($this.css("left")),
+                        by = parseInt($this.css("top")),
+                        dist = Math.sqrt(
+                        Math.pow($stage.width() / 2 - bx - $this.width(), 2) +
+                        Math.pow($stage.height() / 2 - by - $this.height(), 2));
+                    bx = Math.round(bx + $this.data("x_speed"));
+                    by = Math.round(by + $this.data("y_speed"));
+
+                    $this.css("left", bx + "px");
+                    $this.css("top", by + "px");
+                    
+                    if ($this.width()/2+bR< dist ) {
+                        $this.remove();
+                        createBullet();
+                    }
+
+                   var pcx  = parseInt($player.css("left"))+$player.width()/2,
+                       pcy = parseInt($player.css("top"))+$player.height()/2,
+                       p_b_dist = Math.sqrt(Math.pow(pcx - (bx + $this.width() / 2), 2) + Math.pow(pcy - (by + $this.height() / 2), 2));
+                   if ($this.width()/2+$player.width()/4>p_b_dist) {
+                       clearInterval(loop);
+                   }
+
+               });
+
+               $score.html(++count);
+
+            }, 1000 / 60);
+        })
+
+    </script>
+</body>
+
+</html>
+
